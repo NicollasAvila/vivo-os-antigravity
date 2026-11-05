@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "vivo-os": {
+      "command": "node",
+      "args": ["./node_modules/mogno-mcp/client.js"],
+      "env": {
+        "MOGNO_URL": "https://cloud.mogno.ai"
+      }
+    }
+  }
+}

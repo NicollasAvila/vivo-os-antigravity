@@ -1,0 +1,14 @@
+{
+  "include": [
+    "functions"
+  ],
+  "pythonVersion": "3.13",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "exclude": [
+    "**/__pycache__",
+    "**/.venv",
+    "**/.pytest_cache"
+  ]
+}
