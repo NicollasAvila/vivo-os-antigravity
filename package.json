@@ -1,17 +1,12 @@
 {
-  "name": "vivo-os-project",
+  "name": "vivo-os-antigravity",
   "version": "1.0.0",
-  "description": "Integration and development workspace for Vivo OS (Mogno AI)",
+  "description": "Antigravity IDE integration for direct remote management and editing of Vivo OS (Mogno AI) apps",
   "type": "module",
   "main": "src/client.js",
   "scripts": {
     "setup": "node scripts/setup.js",
     "status": "node src/status.js",
-    "seiva": "node scripts/seiva.js",
-    "cargos:status": "cd apps/cargos-e-salarios && node ../../scripts/seiva.js status",
-    "cargos:pull": "cd apps/cargos-e-salarios && node ../../scripts/seiva.js pull",
-    "cargos:push": "cd apps/cargos-e-salarios && node ../../scripts/seiva.js push",
-    "cargos:build": "cd apps/cargos-e-salarios && node ../../scripts/seiva.js build",
     "mcp": "node ./node_modules/mogno-mcp/client.js"
   },
   "dependencies": {
@@ -19,4 +14,3 @@
     "mogno-mcp": "^0.6.0"
   }
 }
-

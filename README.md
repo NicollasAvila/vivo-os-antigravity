@@ -1,101 +1,114 @@
 # Vivo OS (Mogno AI) + Antigravity IDE
 
-Repositório base para desenvolvimento, governança e sincronização de aplicações da plataforma **Vivo OS** (Mogno AI) utilizando o **Google Antigravity IDE**.
+Ambiente de integração e cockpit operacional para gerenciamento, inspeção e **edição direta na nuvem** de aplicações da plataforma **Vivo OS** (Mogno AI) utilizando o **Google Antigravity IDE**.
 
-Este projeto permite que múltiplos membros do time colaborem no mesmo repositório utilizando **suas próprias chaves de API**, sem risco de vazamento de credenciais.
+> 💡 **Modelo de Operação 100% Remoto:**  
+> Não é necessário clonar os códigos-fonte dos apps para sua máquina local. Todas as alterações, leituras, compilações e publicações são executadas **diretamente na plataforma em tempo real** através do servidor MCP (`mogno-mcp`), mantendo os arquivos e o estado sempre centralizados na nuvem.
 
 ---
 
 ## 🚀 Pré-requisitos
 
 - [Node.js](https://nodejs.org/) (versão 18, 20 ou superior)
-- [Antigravity IDE](https://antigravity.google/) (ou compatível com Model Context Protocol - MCP)
-- Acesso ao workspace da Vivo OS e uma chave de API pessoal gerada em:  
+- [Antigravity IDE](https://antigravity.google/)
+- Chave de API pessoal gerada na plataforma:  
   👉 **https://cloud.mogno.ai/api-keys**
 
 ---
 
 ## 📦 Como Iniciar (Quickstart para o Time)
 
-### 1. Clonar o repositório
+### 1. Clonar este repositório de ferramentas
 ```bash
 git clone https://github.com/NicollasAvila/vivo-os-antigravity.git
 cd vivo-os-antigravity
 ```
 
-### 2. Instalar as dependências
+### 2. Instalar dependências
 ```bash
 npm install
 ```
 
 ### 3. Executar o assistente de configuração
-Execute o comando abaixo e insira sua chave de API pessoal quando solicitado (ou passe como argumento):
 ```bash
 npm run setup
 ```
-> O assistente irá validar sua chave na plataforma, criar o seu `.env` local, salvar a credencial em `~/.seiva/config.json` para o CLI e registrar o servidor MCP no seu Antigravity IDE.
+> O assistente validará sua chave individual, criará seu `.env` local (ignorado pelo Git), salvará em `~/.seiva/config.json` e registrará o servidor MCP no seu Antigravity IDE (`~/.gemini/config/mcp_config.json`).
 
-### 4. Validar a conexão
+### 4. Validar conexão
 ```bash
 npm run status
 ```
-Você verá o resumo do seu usuário, workspace e total de apps aos quais tem acesso.
 
 ---
 
-## 🛠️ Comandos Disponíveis
+## 🤖 Como Funciona a Edição Direta no Antigravity
 
-| Comando | Descrição |
+Ao conversar com o agente no Antigravity, ele interage diretamente com a plataforma através das ferramentas MCP:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Desenvolvedor (Time)
+    participant AGY as Antigravity IDE (Agente)
+    participant MCP as Servidor MCP (vivo-os)
+    participant Cloud as Vivo OS (cloud.mogno.ai)
+
+    Dev->>AGY: "Quero alterar o app Cargos e Salários..."
+    AGY->>MCP: seiva_get_project_context(app_id)
+    MCP->>Cloud: GET /api/v1/mgmt/apps/{id}/context
+    Cloud-->>MCP: Manifest, guardrails, memória
+    MCP-->>AGY: Contexto carregado
+    AGY->>MCP: seiva_read_file(app_id, path)
+    MCP->>Cloud: GET /api/v1/mgmt/apps/{id}/files/{path}
+    Cloud-->>MCP: Conteúdo atual do arquivo
+    MCP-->>AGY: Arquivo remoto
+    AGY->>MCP: seiva_edit_file_diff(app_id, path, diff)
+    MCP->>Cloud: PATCH /api/v1/mgmt/apps/{id}/files/{path}
+    Cloud-->>MCP: Arquivo atualizado na nuvem
+    AGY->>MCP: seiva_build_app(app_id)
+    MCP->>Cloud: POST /api/v1/mgmt/apps/{id}/build
+    Cloud-->>MCP: Build OK + preview_url
+    MCP-->>AGY: Sucesso
+    AGY-->>Dev: URL de preview e confirmação da alteração
+```
+
+### Ferramentas MCP Nativas Disponíveis ao Agente
+
+| Ferramenta | Descrição |
 | :--- | :--- |
-| `npm run setup` | Assistente interativo de configuração de chave de API e MCP |
-| `npm run status` | Verifica a conectividade com o workspace e exibe dados do usuário |
-| `npm run seiva -- <cmd>` | Executa comandos do CLI da plataforma (`clone`, `pull`, `push`, `build`) |
-| `npm run cargos:status` | Verifica alterações locais vs remoto no app *Cargos e Salários* |
-| `npm run cargos:pull` | Puxa a versão mais recente do app *Cargos e Salários* da plataforma |
-| `npm run cargos:push` | Envia alterações locais do app *Cargos e Salários* para a plataforma |
-| `npm run cargos:build` | Compila o app no sandbox remoto e retorna a URL de preview |
+| `seiva_get_project_context` | Inspeciona contexto, estrutura e manifest do app remoto |
+| `seiva_list_files` | Lista todos os arquivos do app diretamente na nuvem |
+| `seiva_read_file` | Lê o conteúdo de qualquer arquivo remoto do app |
+| `seiva_edit_file_diff` | Aplica edições cirúrgicas (diffs) diretamente no código remoto |
+| `seiva_write_file` | Cria ou sobrescreve arquivos na nuvem |
+| `seiva_build_app` | Dispara compilação no sandbox da plataforma e gera preview |
+| `seiva_test_app` | Executa smoke tests e loop de auto-correção de erros |
+| `seiva_publish_app` | Gera snapshot e publica a versão em produção |
+| `seiva_app_lock` | Bloqueia edição concorrente em sessões multi-usuário |
+| `seiva_get_app_runtime_errors` | Coleta erros capturados em tempo de execução |
 
 ---
 
-## 📱 Trabalhando com Apps
+## 📋 Apps do Workspace (Exemplos)
 
-### App Atual: Cargos e Salários
-O app já está clonado no diretório `apps/cargos-e-salarios/`.
-- [MEMORY.md](apps/cargos-e-salarios/MEMORY.md): Contratos, decisões de arquitetura e regras de negócio do app.
-- [App.tsx](apps/cargos-e-salarios/App.tsx): Ponto de entrada e rotas.
+Para orientar o agente sobre em qual app trabalhar, basta informar o nome ou o ID:
 
-Para obter intellisense completo no app:
+- **[ PX ] Cargos e Salários:** `a3814723-98d0-40b6-89b4-f85559116cef`
+- **Nova Venda - Retrofit:** `0d732fb4-88dd-40b4-909d-a812325c07d3`
+- **[ED] Painel de tarefas:** `7aefbfcd-412a-4f01-8871-e2ff6c1ee152`
+- **Dashboard T&D:** `fa650b27-59d3-4479-bf9c-dcf4efcadd50`
+- **IPNET LAB:** `b84b9557-016a-4487-bf49-9769cdc1d1e2`
+
+Para listar todos os apps disponíveis no workspace:
 ```bash
-cd apps/cargos-e-salarios
-npm install
+npm run status
 ```
-
-### Clonando outros apps do Workspace
-Para baixar qualquer outro app do workspace para trabalhar localmente:
-```bash
-npm run seiva -- clone <APP_ID> --dir apps/<nome-da-pasta>
-```
-*(Você pode consultar a lista completa de IDs de apps usando o assistente ou via `npm run status`).*
-
----
-
-## 🤖 Integração com o Antigravity IDE
-
-O projeto já inclui o arquivo [.mcp.json](.mcp.json) e o script de setup registra o servidor MCP `vivo-os` globalmente no seu Antigravity (`~/.gemini/config/mcp_config.json`).
-
-Com isso, o assistente do Antigravity possui acesso nativo às ferramentas da plataforma (`seiva_*`), permitindo:
-- Inspecionar contexto do app (`seiva_get_project_context`)
-- Travar edição concorrente (`seiva_app_lock`)
-- Ler e aplicar diffs em arquivos (`seiva_read_file`, `seiva_edit_file_diff`)
-- Disparar compilação remota e smoke tests (`seiva_build_app`, `seiva_test_app`)
-- Gerenciar deploys e versões (`seiva_publish_app`, `seiva_rollback_app`)
-
-Consulte o documento [CONTEXT.md](CONTEXT.md) para detalhes aprofundados sobre a arquitetura da plataforma, guardrails e a lista fechada de bibliotecas permitidas.
 
 ---
 
 ## 🔒 Segurança
 
-- O arquivo `.env` está no `.gitignore` e **NUNCA** deve ser commitado.
-- Chaves de API são individuais e vinculadas ao seu usuário na plataforma.
-- Credenciais e segredos de produção nunca devem ser escritos no código-fonte; utilize o cofre da plataforma (`seiva.credential()`).
+- Cada desenvolvedor utiliza sua **própria chave de API**.
+- O arquivo `.env` é estritamente ignorado no `.gitignore`.
+- Nenhuma chave ou segredo fica armazenado no repositório.
